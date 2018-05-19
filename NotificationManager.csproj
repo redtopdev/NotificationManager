@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <AssemblyName>Engaze.NotificationManager</AssemblyName>
+    <RootNamespace>Engaze.NotificationManager</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NotificationManager.Contract\NotificationManager.Contract.csproj" />
+  </ItemGroup>
+
+</Project>
