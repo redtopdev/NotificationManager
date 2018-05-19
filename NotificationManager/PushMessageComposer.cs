@@ -30,7 +30,7 @@
         }
 
         //Used for remind contact 
-        public static PushNotification GetMessage(RemindRequest remindReq)
+        public static PushNotification GetMessage(RemindRequestSlim remindReq)
         {
             PushNotification pn = new PushNotification();
 
@@ -83,7 +83,7 @@
                 Type = notificationType, //"EventResponse",
                 InitiatorId = evt.InitiatorId.ToString(),
                 EventResponderId = eventRequest.RequestorId.ToString(),
-                EventResponderName = evt.UserList.First(x => x.UserId.ToString().ToLower() == eventRequest.RequestorId.ToLower()).ProfileName,
+                EventResponderName = evt.UserList.First(x => x.UserId.ToString().ToLower().Equals(eventRequest.RequestorId.ToLower())).ProfileName,
                 EventAcceptanceStateId = eventRequest.EventAcceptanceStateId,
                 TrackingAccepted = eventRequest.TrackingAccepted
             };
