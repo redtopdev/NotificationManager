@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MasDev.Common.Push.PushSharp" Version="1.0.2" />
+    <PackageReference Include="PushSharp" Version="4.0.10" />
+    <PackageReference Include="PushSharp.Core" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\NotificationManager.Contract\NotificationManager.Contract.csproj" />
   </ItemGroup>
 

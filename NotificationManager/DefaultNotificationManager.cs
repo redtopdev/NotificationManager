@@ -1,21 +1,18 @@
 ﻿namespace Engaze.NotificationManager
 {
     using Engaze.NotificationManager.Contract;
-    using Engaze.NotificationManager.PNM;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     public class DefaultNotificationManager : INotificationManager
     {
-        IPushNotifier _pushNotifier;
         INotificationTaskQueue _taskQueue;
         private Predicate<string> _isValidGCMId;
         private Func<string, string, bool> _isRequester;
         private Func<ICollection<string>, string, bool> _isParticipantRemoved;
 
-        public DefaultNotificationManager(IPushNotifier pushNotifier, INotificationTaskQueue taskQueue)
+        public DefaultNotificationManager(INotificationTaskQueue taskQueue)
         {
-            _pushNotifier = new GCMNotifier();
             _taskQueue = taskQueue;
             _isValidGCMId = Id => Id.ToUpper().CompareTo("TEMP") != 0;
             _isRequester = (userId, requesterId) => userId.ToString().ToLower().Equals(requesterId.ToString().ToLower());

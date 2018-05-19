@@ -1,32 +1,19 @@
-﻿using Engaze.NotificationManager.Contract;
-using Engaze.NotificationManager.PNM;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using Watchus.GCMServer;
-using WatchUs.Interface.PushNotification;
-using WatchUs.Model;
+﻿using System.Threading;
 
 
 namespace Engaze.NotificationManager
 {
     public class NotificationTaskManager : NotificationTaskQueue
     {
-        IPushNotifier notifier;
-        public NotificationTaskManager()           
+        IPushNotifier _notifier;
+        public NotificationTaskManager(IPushNotifier notifier)           
         {
-            this.notifier = new GCMNotifier();
+            this._notifier = notifier;
         }
         protected override void Task(dynamic userData)
         {
             Thread.Sleep(1000);
-            //Console.WriteLine(UserData.ToString());
-            this.notifier.SendInvite(userData.RegistrationIds, userData.NotificationData);
-        }
-    
+            this._notifier.SendInvite(userData.RegistrationIds, userData.NotificationData);
+        }    
     }
 }

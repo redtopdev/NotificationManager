@@ -10,7 +10,7 @@ namespace Engaze.NotificationManager.Contract
         public List<EventParticipantSlim> UserList { get; set; }
         public Guid InitiatorId { get; set; }
         public string InitiatorName { get; set; }
-        public string InitiatorGCMClientId { get; set; }      
-        
+        public string InitiatorGCMClientId { get; set; }
+        public string Description { get; set; }
     }
 }

@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 
 
-namespace Engaze.NotificationManager.PNM
+namespace Engaze.NotificationManager
 {
     public interface IPushNotifier
     {
-        void Invite(EventSlim evnt, List<UserProfile> users);
+        void Invite(EventSlim evnt, ICollection<string> gcmClientIds);
         void SendInvite(List<string> registrationIds, PushNotification notificationData);
     }
 }
