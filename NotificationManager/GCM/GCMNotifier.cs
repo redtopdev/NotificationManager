@@ -1,117 +1,190 @@
 ﻿using System;
 using System.Collections.Generic;
 using Engaze.NotificationManager.Contract;
+using System.Configuration;
 using PushSharp.Google;
+using PushSharp.Common;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace Engaze.NotificationManager.GCM
 {
     public class GCMNotifier : IPushNotifier
     {
-        //Android push message to GCM server method
-        #region IPushNotifier Implemented methods
-
-        public void Invite(EventSlim evnt, ICollection<string> gcmClientIds)
-        {
-            List<string> registrationIds = new List<string>();           
-            GcmNotification notification = new GcmNotification();
-            notification.ForDeviceRegistrationId(gcmClientIds);
-            PushNotification notificationData = new PushNotification()
-            {
-                Type = "EventInvite",
-                EventId = evnt.EventId.ToString(),
-                EventName = evnt.Description
-            };
-
-            notification.WithJson(Serializer.SerializeToJason<PushNotification>(notificationData));
-
-            this.PushNotification(notification);
-        }
-
-
-
-        public void SendInvite(List<string> registrationIds, PushNotification notificationData)
-        {
-            GcmNotification notification = new GcmNotification();
-            notification.ForDeviceRegistrationId(registrationIds);
-
-            notification.WithJson(Serializer.SerializeToJason<PushNotification>(notificationData));
-
-            this.PushNotification(notification);
-        }
-
-
-        #endregion IPushNotifier Implemented methods
-
 
         #region private methods
-        private void PushNotification(GcmNotification notification)
+        public void PushNotification(ICollection<string> registrationIds, PushNotification notificationData)
         {
+            var config = new GcmConfiguration("GCM-SENDER-ID", "AUTH-TOKEN", null);
+
             //Create our push services broker
-            var push = new PushBroker();
+            var gcmBroker = new GcmServiceBroker(config);
 
-            //Wire up the events for all the services that the broker registers
-            push.OnNotificationSent += NotificationSent;
-            push.OnChannelException += ChannelException;
-            push.OnServiceException += ServiceException;
-            push.OnNotificationFailed += NotificationFailed;
-            push.OnDeviceSubscriptionExpired += DeviceSubscriptionExpired;
-            push.OnDeviceSubscriptionChanged += DeviceSubscriptionChanged;
-            push.OnChannelCreated += ChannelCreated;
-            push.OnChannelDestroyed += ChannelDestroyed;
+            gcmBroker.OnNotificationSucceeded += GcmBroker_OnNotificationSucceeded;
 
-            push.RegisterGcmService(new GcmPushChannelSettings(ConfigurationManager.AppSettings["GCMAPIKey"]));
-            //push.QueueNotification(new GcmNotification().ForDeviceRegistrationId("eWy5OUaxHJY:APA91bFNfAUJN7bt7HREMjgFQ653P_Q9vsgEizLStLx4TxcTrety3W-M0RgcB1plmu8C4SLbzwZOFHiCAyWXEjaQ0yzYB7m34yua-c78nsh32rY1e6aZVphrM1HAmw_NnfoxqvZeIuOk")
-                                  //.WithJson(@"{""alert"":""Hello World!"",""badge"":7,""sound"":""sound.caf"",""msg"":""hello""}"));
+            gcmBroker.OnNotificationFailed += GcmBroker_OnNotificationFailed;
 
-            push.QueueNotification(notification);
+            // Start the broker
+            gcmBroker.Start();
 
-            //Stop and wait for the queues to drains
-            push.StopAllServices();
+            this.QueueNotofication(registrationIds, notificationData, gcmBroker);
+
+            gcmBroker.Stop();
+
         }
 
-
-        #region callbacks
-        private void ChannelDestroyed(object sender)
+        private void GcmBroker_OnNotificationSucceeded(GcmNotification notification)
         {
-            //logging
+            //
         }
 
-        private void ChannelCreated(object sender, IPushChannel pushChannel)
+        private void GcmBroker_OnNotificationFailed(GcmNotification notification, AggregateException aggregateEx)
         {
-            //logging
+            aggregateEx.Handle(ex =>
+            {
+
+                // See what kind of exception it was to further diagnose
+                if (ex is GcmNotificationException)
+                {
+                    var notificationException = (GcmNotificationException)ex;
+
+                    // Deal with the failed notification
+                    var gcmNotification = notificationException.Notification;
+                    var description = notificationException.Description;
+
+                    Console.WriteLine($"GCM Notification Failed: ID={gcmNotification.MessageId}, Desc={description}");
+                }
+                else if (ex is GcmMulticastResultException)
+                {
+                    var multicastException = (GcmMulticastResultException)ex;
+
+                    foreach (var succeededNotification in multicastException.Succeeded)
+                    {
+                        Console.WriteLine($"GCM Notification Succeeded: ID={succeededNotification.MessageId}");
+                    }
+
+                    foreach (var failedKvp in multicastException.Failed)
+                    {
+                        var n = failedKvp.Key;
+                        var e = failedKvp.Value;
+
+                        Console.WriteLine($"GCM Notification Failed: ID={n.MessageId}, Desc={e.Data}");
+                    }
+
+                }
+                else if (ex is DeviceSubscriptionExpiredException)
+                {
+                    var expiredException = (DeviceSubscriptionExpiredException)ex;
+
+                    var oldId = expiredException.OldSubscriptionId;
+                    var newId = expiredException.NewSubscriptionId;
+
+                    Console.WriteLine($"Device RegistrationId Expired: {oldId}");
+
+                    if (!string.IsNullOrWhiteSpace(newId))
+                    {
+                        // If this value isn't null, our subscription changed and we should update our database
+                        Console.WriteLine($"Device RegistrationId Changed To: {newId}");
+                    }
+                }
+                else if (ex is RetryAfterException)
+                {
+                    var retryException = (RetryAfterException)ex;
+                    // If you get rate limited, you should stop sending messages until after the RetryAfterUtc date
+                    Console.WriteLine($"GCM Rate Limited, don't send more until after {retryException.RetryAfterUtc}");
+                }
+                else
+                {
+                    Console.WriteLine("GCM Notification Failed for some unknown reason");
+                }
+
+                // Mark it as handled
+                return true;
+            });
         }
 
-        private void DeviceSubscriptionChanged(object sender, string oldSubscriptionId, string newSubscriptionId, INotification notification)
+        private void QueueNotofication(ICollection<string> registrationIds, PushNotification notificationData, GcmServiceBroker gcmBroker)
         {
-            //logging
+            foreach (var regId in registrationIds)
+            {
+                // Queue a notification to send
+                gcmBroker.QueueNotification(new GcmNotification
+                {
+                    RegistrationIds = new List<string> {
+                        regId
+                    },
+                    Data = JObject.Parse(JsonConvert.SerializeObject(notificationData))
+                });
+            }
         }
 
-        private void DeviceSubscriptionExpired(object sender, string expiredSubscriptionId, DateTime expirationDateUtc, INotification notification)
-        {
-            //logging
-        }
 
-        private void NotificationFailed(object sender, INotification notification, Exception error)
-        {
-            //logging
-            
-        }
 
-        private void ServiceException(object sender, Exception error)
+        private void OnNotificationFailed(GcmNotification notification, AggregateException aggregateEx)
         {
-            //logging
-        }
 
-        private void ChannelException(object sender, PushSharp.Core.IPushChannel pushChannel, Exception error)
-        {
-            //logging
-        }
+            aggregateEx.Handle(ex =>
+            {
 
-        private void NotificationSent(object sender, PushSharp.Core.INotification notification)
-        {
-            //logging
+                // See what kind of exception it was to further diagnose
+                if (ex is GcmNotificationException)
+                {
+                    var notificationException = (GcmNotificationException)ex;
+
+                    // Deal with the failed notification
+                    var gcmNotification = notificationException.Notification;
+                    var description = notificationException.Description;
+
+                    Console.WriteLine($"GCM Notification Failed: ID={gcmNotification.MessageId}, Desc={description}");
+                }
+                else if (ex is GcmMulticastResultException)
+                {
+                    var multicastException = (GcmMulticastResultException)ex;
+
+                    foreach (var succeededNotification in multicastException.Succeeded)
+                    {
+                        Console.WriteLine($"GCM Notification Succeeded: ID={succeededNotification.MessageId}");
+                    }
+
+                    foreach (var failedKvp in multicastException.Failed)
+                    {
+                        var n = failedKvp.Key;
+                        var e = failedKvp.Value;
+
+                        Console.WriteLine($"GCM Notification Failed: ID={n.MessageId}, Desc={e.Data}");
+                    }
+
+                }
+                else if (ex is DeviceSubscriptionExpiredException)
+                {
+                    var expiredException = (DeviceSubscriptionExpiredException)ex;
+
+                    var oldId = expiredException.OldSubscriptionId;
+                    var newId = expiredException.NewSubscriptionId;
+
+                    Console.WriteLine($"Device RegistrationId Expired: {oldId}");
+
+                    if (!string.IsNullOrWhiteSpace(newId))
+                    {
+                        // If this value isn't null, our subscription changed and we should update our database
+                        Console.WriteLine($"Device RegistrationId Changed To: {newId}");
+                    }
+                }
+                else if (ex is RetryAfterException)
+                {
+                    var retryException = (RetryAfterException)ex;
+                    // If you get rate limited, you should stop sending messages until after the RetryAfterUtc date
+                    Console.WriteLine($"GCM Rate Limited, don't send more until after {retryException.RetryAfterUtc}");
+                }
+                else
+                {
+                    Console.WriteLine("GCM Notification Failed for some unknown reason");
+                }
+
+                // Mark it as handled
+                return true;
+            });
         }
-        #endregion callbacks
 
         #endregion private methods
     }

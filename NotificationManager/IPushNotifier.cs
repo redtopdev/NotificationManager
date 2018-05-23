@@ -6,7 +6,6 @@ namespace Engaze.NotificationManager
 {
     public interface IPushNotifier
     {
-        void Invite(EventSlim evnt, ICollection<string> gcmClientIds);
-        void SendInvite(List<string> registrationIds, PushNotification notificationData);
+        void PushNotification(ICollection<string> registrationIds, PushNotification notificationData);
     }
 }

@@ -13,7 +13,7 @@ namespace Engaze.NotificationManager
         protected override void Task(dynamic userData)
         {
             Thread.Sleep(1000);
-            this._notifier.SendInvite(userData.RegistrationIds, userData.NotificationData);
+            this._notifier.PushNotification(userData.RegistrationIds, userData.NotificationData);
         }    
     }
 }
