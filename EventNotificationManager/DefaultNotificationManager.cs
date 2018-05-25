@@ -1,17 +1,18 @@
 ﻿namespace Engaze.NotificationManager
 {
     using Engaze.NotificationManager.Contract;
+    using RedTop.Common.NotificationManager;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     public class DefaultNotificationManager : INotificationManager
     {
-        INotificationTaskQueue _taskQueue;
+        ITaskQueue _taskQueue;
         private Predicate<string> _isValidGCMId;
         private Func<string, string, bool> _isRequester;
         private Func<ICollection<string>, string, bool> _isParticipantRemoved;
 
-        public DefaultNotificationManager(INotificationTaskQueue taskQueue)
+        public DefaultNotificationManager(ITaskQueue taskQueue)
         {
             _taskQueue = taskQueue;
             _isValidGCMId = Id => Id.ToUpper().CompareTo("TEMP") != 0;

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventNotificationManager", "EventNotificationManager\EventNotificationManager.csproj", "{31972C27-3CBD-4EDF-B1AD-0A992F6C9823}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventNotificationManager.Contract", "EventNotificationManager.Contract\EventNotificationManager.Contract.csproj", "{8423ACA4-61EC-48FE-BBCD-FDE711480E4F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{31972C27-3CBD-4EDF-B1AD-0A992F6C9823}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31972C27-3CBD-4EDF-B1AD-0A992F6C9823}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31972C27-3CBD-4EDF-B1AD-0A992F6C9823}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31972C27-3CBD-4EDF-B1AD-0A992F6C9823}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8423ACA4-61EC-48FE-BBCD-FDE711480E4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8423ACA4-61EC-48FE-BBCD-FDE711480E4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8423ACA4-61EC-48FE-BBCD-FDE711480E4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8423ACA4-61EC-48FE-BBCD-FDE711480E4F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {79E35BE3-3C26-49D2-9309-9C9A4F973AC0}
+	EndGlobalSection
+EndGlobal

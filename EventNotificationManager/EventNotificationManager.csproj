@@ -8,11 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="PushSharp.Core" Version="1.0.0" />
+    <PackageReference Include="RedTop.Common.NotificationManager" Version="1.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NotificationManager.Contract\NotificationManager.Contract.csproj" />
+    <ProjectReference Include="..\EventNotificationManager.Contract\EventNotificationManager.Contract.csproj" />
   </ItemGroup>
 
   <ItemGroup>
